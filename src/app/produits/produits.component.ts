@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
-import { Produit } from '../model/produit';
-import { NgForm } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
-import { ProduitsService } from '../services/produits.service';
+import {Component, OnInit} from '@angular/core';
+import {Categorie, Produit} from '../model/produit';
+import {NgForm} from '@angular/forms';
+import {ProduitsService} from '../services/produits.service';
+import {CategorieService} from "../services/categorie.service";
 
 @Component({
   selector: 'app-produits',
@@ -11,13 +11,17 @@ import { ProduitsService } from '../services/produits.service';
 })
 export class ProduitsComponent implements OnInit {
   produits: Array<Produit> = [];
-  produitCourant: Produit = new Produit();
+  categories: Array<Categorie> = [];
+  produitCourant: any;
 
-  constructor(private produitsService: ProduitsService, private http: HttpClient) {}
+  constructor(private produitsService: ProduitsService,
+              private categorieService: CategorieService) {
+  }
 
   ngOnInit(): void {
     console.log("Initializing component: Retrieving the list of products");
     this.consulterProduits();
+    this.getCategories();
   }
 
   consulterProduits() {
@@ -33,38 +37,38 @@ export class ProduitsComponent implements OnInit {
     });
   }
 
- mettreAJourProduit(nouveau: Produit, ancien: Produit) {
-  const confirmation = confirm(`Existing product. Confirm updating: ${ancien.designation}?`);
-
-  if (confirmation) {
-    this.produitsService.updateProduit(ancien.id, nouveau).subscribe({
-      next: updatedProduit => {
-        console.log("PUT Success");
-        Object.assign(ancien, updatedProduit);  // Use updatedProduit directly if it's an individual product
-        console.log('Product updated: ' + ancien.designation);
+  getCategories() {
+    console.log("Retrieving the list of products");
+    this.categorieService.getCategories().subscribe({
+      next: data => {
+        console.log("GET Success");
+        this.categories = data;
       },
       error: err => {
-        console.error("PUT Error", err);
-      }
-    });
-  } else {
-    console.log("Update canceled");
-  }
-}
-
-
-  ajouterProduit(nouveau: Produit) {
-    console.log('New product');
-    this.produitsService.addProduit(nouveau).subscribe({
-      next: newProduct => {
-        console.log("POST Success");
-        this.produits.push(nouveau);
-      },
-      error: err => {
-        console.error("POST Error", err);
+        console.error("GET Error", err);
       }
     });
   }
+
+  mettreAJourProduit(nouveau: Produit) {
+    const confirmation = confirm(`Existing product. Confirm updating: ${nouveau.code}?`);
+
+    if (confirmation) {
+      this.produitsService.updateProduit(nouveau).subscribe({
+        next: updatedProduit => {
+          console.log("PUT Success");
+          this.consulterProduits();
+        },
+        error: err => {
+          console.error("PUT Error", err);
+        }
+      });
+    } else {
+      console.log("Update canceled");
+    }
+  }
+
+
 
   supprimerProduit(produit: Produit) {
     const reponse: boolean = confirm(`Do you want to delete the product: ${produit.designation}?`);
@@ -72,7 +76,7 @@ export class ProduitsComponent implements OnInit {
     if (reponse) {
       console.log("Deletion confirmed...");
 
-      this.produitsService.deleteProduit(produit.id).subscribe({
+      this.produitsService.deleteProduit(produit).subscribe({
         next: () => {
           console.log("DELETE Success");
           const index: number = this.produits.indexOf(produit);
@@ -94,29 +98,32 @@ export class ProduitsComponent implements OnInit {
 
   validerFormulaire(form: NgForm) {
     console.log(form.value);
-
-    if (form.value.id !== undefined) {
-      console.log("Non-empty id...");
-      const existingProduct = this.produits.find(p => p.id === form.value.id);
-
-      if (existingProduct) {
-        console.log('Existing product');
-        this.mettreAJourProduit(form.value, existingProduct);
-      } else {
-        console.log('New product');
-        this.ajouterProduit(form.value);
-        console.log("Adding a new product: " + form.value.designation);
-      }
-    } else {
-      console.log("Empty ID...");
+    if (form.invalid) {
+      return;
     }
+    let requestUpdate: Produit = {
+      "id": this.produitCourant.id,
+      "code": this.produitCourant.code,
+      "designation": this.produitCourant.designation,
+      "quantite": this.produitCourant.quantite,
+      "prix": this.produitCourant.prix,
+      "categorie": this.categories.find(item => item.id === Number(this.produitCourant.categorie))
+    }
+    this.mettreAJourProduit(requestUpdate);
   }
 
   annulerSaisie() {
     this.produitCourant = new Produit();
   }
 
-  editerProduit(p: Produit) {
-    this.produitCourant = p;
+  editerProduit(produit: Produit) {
+    this.produitCourant = {
+      "id": produit.id,
+      "code": produit.code,
+      "designation": produit.designation,
+      "quantite": produit.quantite,
+      "prix": produit.prix,
+      "categorie": produit?.categorie?.id
+    }
   }
 }

@@ -1,13 +1,47 @@
-<!-- ajout-produit.component.html -->
-<div>
-  <h2>Ajouter un produit</h2>
-  <form (submit)="ajouterProduit()">
-    <label for="code">Code:</label>
-    <input type="text" id="code" [(ngModel)]="nouveauProduit.code" required>
-    <label for="designation">Désignation:</label>
-    <input type="text" id="designation" [(ngModel)]="nouveauProduit.designation" required>
-    <label for="prix">Prix:</label>
-    <input type="number" id="prix" [(ngModel)]="nouveauProduit.prix" required>
-    <button type="submit">Ajouter</button>
-  </form>
+<div class="card mt-2">
+  <h2 class="m-2">Ajouter un produit</h2>
+  <div class="card-body">
+
+    <form #produitForm="ngForm" (ngSubmit)="ajouterProduit(nouveauProduit)"  >
+
+
+      <div class="mb-3">
+        <label for="nouveauProduitcode" class="form-label">Code</label>
+        <input type="text" class="form-control" id="nouveauProduitcode" name="code"
+               [(ngModel)]="nouveauProduit.code" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="produitCourantdesignation" class="form-label">Désignation</label>
+        <input type="text" class="form-control" id="produitCourantdesignation" name="designation"
+               [(ngModel)]="nouveauProduit.designation" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="nouveauProduitprix" class="form-label">Prix</label>
+        <input type="text" class="form-control" id="nouveauProduitprix" name="prix"
+               [(ngModel)]="nouveauProduit.prix" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="nouveauProduitQte" class="form-label">Quantité</label>
+        <input type="text" class="form-control" id="nouveauProduitQte" name="quantite"
+               [(ngModel)]="nouveauProduit.quantite" required>
+      </div>
+
+      <select class="form-select" aria-label="Default select example" name="categorie"
+              [(ngModel)]="nouveauProduit.categorie" required>
+        <ng-container *ngFor="let categorie of categories">
+          <option [value]="categorie.id"
+                  [selected]="categorie.id===nouveauProduit.categorie">{{categorie.libelle}}</option>
+        </ng-container>
+      </select>
+
+
+      <button type="submit" class="btn btn-primary mt-2" [disabled]="!produitForm.form.valid">Ajouter</button>
+
+    </form>
+
+  </div>
 </div>
+
