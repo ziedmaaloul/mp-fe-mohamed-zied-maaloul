@@ -11,8 +11,10 @@ import {CategorieService} from "../services/categorie.service";
 })
 export class ProduitsComponent implements OnInit {
   produits: Array<Produit> = [];
+  produitsFiltres: Array<Produit> = [];
   categories: Array<Categorie> = [];
   produitCourant: any;
+  searchTerm: string = '';
 
   constructor(private produitsService: ProduitsService,
               private categorieService: CategorieService) {
@@ -30,6 +32,7 @@ export class ProduitsComponent implements OnInit {
       next: data => {
         console.log("GET Success");
         this.produits = data;
+        this.produitsFiltres = [...this.produits];
       },
       error: err => {
         console.error("GET Error", err);
@@ -37,6 +40,18 @@ export class ProduitsComponent implements OnInit {
     });
   }
 
+  onSearchChange(): void {
+    this.produitsFiltres = this.produits.filter(p => this.matchSearch(p));
+  }
+
+  matchSearch(produit: any): boolean {
+    const searchFields = ['code', 'designation', 'categorie?.libelle'];
+    const lowerCaseSearchTerm = this.searchTerm.toLowerCase();
+
+    return searchFields.some(field =>
+      produit[field]?.toLowerCase().includes(lowerCaseSearchTerm)
+    );
+  }
   getCategories() {
     console.log("Retrieving the list of products");
     this.categorieService.getCategories().subscribe({

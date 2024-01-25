@@ -59,6 +59,12 @@
   <div class="card mt-2">
     <h2 class="m-2">Liste des produits </h2>
 
+    <div class="mb-3">
+      <label for="searchInput" class="form-label">Rechercher:</label>
+      <input type="text" class="form-control" id="searchInput" [(ngModel)]="searchTerm" (change)="onSearchChange()" />
+    </div>
+
+
     <div class="card-body">
       <table class="table table-striped">
         <thead>
@@ -73,7 +79,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr *ngFor="let p of produits">
+        <tr *ngFor="let p of produitsFiltres">
           <td> {{p.id}}</td>
           <td> {{p.code}}</td>
           <td> {{p.quantite}}</td>
